@@ -4,7 +4,7 @@ const pool = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "250904",
-  database: "QL_ThuVien3",
+  database: "quan_ly_thu_vien",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

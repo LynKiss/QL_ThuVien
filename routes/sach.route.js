@@ -3,7 +3,7 @@ var router = express.Router();
 const sachController = require("../controllers/sach.controller");
 const { authenticate } = require("../middlewares/authMiddleware");
 
-router.get("/", authenticate, sachController.getAll);
+router.get("/", sachController.getAll);
 router.post("/search", authenticate, sachController.search);
 router.post("/advanced-search", authenticate, sachController.advancedSearch);
 router.get("/most-borrowed", authenticate, sachController.getMostBorrowed);
