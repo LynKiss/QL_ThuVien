@@ -1,3 +1,0 @@
-ALTER TABLE sach
-ADD COLUMN nam_xuat_ban INT NULL,
-ADD COLUMN tai_ban INT NULL;
