@@ -24,7 +24,10 @@ const tinNhanRoutes = require("./routes/tin_nhan.route");
 const vaiTroRoutes = require("./routes/vai_tro.route");
 const quanLyRoutes = require("./routes/quan_ly.route");
 const authRoutes = require("./routes/auth.route");
+const sachYeuThichRoutes = require("./routes/sachYeuThich.route");
 
+// Use routes
+app.use("/api/sach_yeu_thich", sachYeuThichRoutes);
 app.use("/api/chi_tiet_dat_muon", chiTietDatMuonRoutes);
 app.use("/api/chi_tiet_muon", chiTietMuonRoutes);
 app.use("/api/danh_gia", danhGiaRoutes);
