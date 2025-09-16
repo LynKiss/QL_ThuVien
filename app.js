@@ -25,8 +25,10 @@ const vaiTroRoutes = require("./routes/vai_tro.route");
 const quanLyRoutes = require("./routes/quan_ly.route");
 const authRoutes = require("./routes/auth.route");
 const sachYeuThichRoutes = require("./routes/sachYeuThich.route");
+const datMuonFlowRoutes = require("./routes/datMuonFlow.route");
 
 // Use routes
+app.use("/api", datMuonFlowRoutes); // /api/dat-muon (flow gộp)
 app.use("/api/sach_yeu_thich", sachYeuThichRoutes);
 app.use("/api/chi_tiet_dat_muon", chiTietDatMuonRoutes);
 app.use("/api/chi_tiet_muon", chiTietMuonRoutes);

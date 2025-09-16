@@ -137,4 +137,17 @@ Sach.advancedSearch = (params, callback) => {
   );
 };
 
+// Lấy danh sách sách đầy đủ thông tin
+Sach.getAllFullInfo = (callback) => {
+  const Sach = {};
+  const sqlString = "CALL GetAllSachFullInfo()";
+  db.query(sqlString, (err, result) => {
+    if (err) {
+      return callback(err, null);
+    }
+    // result[0] chứa dữ liệu từ stored procedure
+    callback(null, result[0]);
+  });
+};
+
 module.exports = Sach;

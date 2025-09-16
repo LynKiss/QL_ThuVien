@@ -5,6 +5,7 @@ const { authenticate } = require("../middlewares/authMiddleware");
 
 router.get("/", sachController.getAll);
 router.post("/search", authenticate, sachController.search);
+router.get("/full", sachController.getAllFullInfo);
 router.post("/advanced-search", authenticate, sachController.advancedSearch);
 router.get("/most-borrowed", authenticate, sachController.getMostBorrowed);
 router.get("/:id", authenticate, sachController.getById);

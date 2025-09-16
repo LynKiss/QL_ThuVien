@@ -6,6 +6,23 @@ module.exports = {
       res.send(result);
     });
   },
+  getAllFullInfo: (req, res) => {
+    Sach.getAllFullInfo((err, data) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!data || data.length === 0) {
+        return res.json({ message: "Không có sách nào", data: [] });
+      }
+      res.json(data);
+    });
+  },
+  getById: (req, res) => {
+    const id = req.params.id;
+    Sach.getById(id, (result) => {
+      res.send(result);
+    });
+  },
   getById: (req, res) => {
     const id = req.params.id;
     Sach.getById(id, (result) => {
