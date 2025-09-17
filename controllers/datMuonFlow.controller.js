@@ -142,3 +142,80 @@ exports.rejectDatMuon = (req, res) => {
     });
   });
 };
+
+// =================== TRẢ SÁCH ===================
+
+// 1. Độc giả gửi yêu cầu trả
+exports.requestTraSach = (req, res) => {
+  const userId = req.user?.id;
+  const { ma_phieu_muon } = req.body;
+
+  if (!userId) return res.status(401).json({ error: "Chưa đăng nhập" });
+  if (!ma_phieu_muon)
+    return res.status(400).json({ error: "Thiếu mã phiếu mượn" });
+
+  const sql = "CALL RequestTraSach(?, ?)"; // dùng STO đã tạo
+  db.query(sql, [ma_phieu_muon, userId], (err, result) => {
+    if (err)
+      return res.status(400).json({ error: err.sqlMessage || err.message });
+
+    res.status(201).json({
+      message: "Đã gửi yêu cầu trả sách. Vui lòng mang sách đến thư viện.",
+      ma_yeu_cau: result[0][0].ma_yeu_cau,
+    });
+  });
+};
+
+// 2. Thủ thư xác nhận & nhập chi tiết trả
+exports.confirmTraSachChiTiet = (req, res) => {
+  const maNhanVien = req.user?.id;
+  const { ma_yeu_cau, ghi_chu, chi_tiet } = req.body;
+
+  if (!maNhanVien)
+    return res.status(401).json({ error: "Chỉ thủ thư mới có quyền xác nhận" });
+  if (!ma_yeu_cau || !Array.isArray(chi_tiet) || chi_tiet.length === 0) {
+    return res.status(400).json({ error: "Thiếu dữ liệu" });
+  }
+
+  const sql = "CALL ConfirmTraSachChiTietFull(?, ?, ?, ?)";
+  db.query(
+    sql,
+    [ma_yeu_cau, maNhanVien, ghi_chu || null, JSON.stringify(chi_tiet)],
+    (err, result) => {
+      if (err)
+        return res.status(400).json({ error: err.sqlMessage || err.message });
+
+      res.json({
+        message: "Xác nhận trả sách thành công",
+        ma_phieu_tra: result[0][0].ma_phieu_tra,
+        tien_phat: result[0][0].tien_phat || 0,
+      });
+    }
+  );
+};
+
+// =================== GIA HẠN ===================
+
+// Thủ thư gia hạn phiếu mượn
+exports.giaHanPhieuMuon = (req, res) => {
+  const maNhanVien = req.user?.id;
+  const { ma_phieu_muon, so_ngay } = req.body;
+
+  if (!maNhanVien) {
+    return res.status(401).json({ error: "Chỉ thủ thư mới có quyền gia hạn" });
+  }
+  if (!ma_phieu_muon || !so_ngay || so_ngay <= 0) {
+    return res.status(400).json({ error: "Thông tin gia hạn không hợp lệ" });
+  }
+
+  const sql = "CALL GiaHanPhieuMuon(?, ?, ?)";
+  db.query(sql, [ma_phieu_muon, so_ngay, maNhanVien], (err, result) => {
+    if (err)
+      return res.status(400).json({ error: err.sqlMessage || err.message });
+
+    res.json({
+      message: "Gia hạn thành công",
+      ma_gia_han: result[0][0].ma_gia_han,
+    });
+  });
+};

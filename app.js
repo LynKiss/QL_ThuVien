@@ -1,8 +1,10 @@
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
+const cors = require("cors"); // <-- thêm dòng này
 
 app.use(express.json());
+app.use(cors()); // <-- cho phép tất cả origin (dev)
 
 // Import routes
 const chiTietDatMuonRoutes = require("./routes/chi_tiet_dat_muon.route");
