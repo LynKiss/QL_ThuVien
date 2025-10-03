@@ -5,11 +5,19 @@ const {
   authenticate,
   authorizeRoles,
 } = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadCloudinary");
 
 router.get("/", authenticate, nguoi_dungController.getAll);
 router.get("/:id", authenticate, nguoi_dungController.getById);
-router.post("/", nguoi_dungController.insert);
-router.put("/:id", authenticate, nguoi_dungController.update);
+// 🔥 Route mới: HomeScreen
+router.get("/home/:id", authenticate, nguoi_dungController.getHome);
+router.post("/", upload.single("avatar"), nguoi_dungController.insert);
+router.put(
+  "/:id",
+  authenticate,
+  upload.single("avatar"),
+  nguoi_dungController.update
+);
 router.delete(
   "/:id",
   authenticate,
@@ -23,5 +31,8 @@ router.post(
   authorizeRoles(1, 2),
   nguoi_dungController.advancedSearch
 );
+// 🔥 Route mới: lấy profile đầy đủ từ procedure
+router.get("/profile/me", authenticate, nguoi_dungController.getMe);
+router.get("/profile/:id", authenticate, nguoi_dungController.getProfile);
 
 module.exports = router;
