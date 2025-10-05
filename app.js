@@ -1,4 +1,5 @@
 const express = require("express");
+
 const app = express();
 const port = process.env.PORT || 3000;
 const cors = require("cors"); // <-- thêm dòng này
@@ -28,8 +29,13 @@ const quanLyRoutes = require("./routes/quan_ly.route");
 const authRoutes = require("./routes/auth.route");
 const sachYeuThichRoutes = require("./routes/sachYeuThich.route");
 const datMuonFlowRoutes = require("./routes/datMuonFlow.route");
+const hotroRoutes = require("./routes/ho_tro.routes");
+const chatRoute = require("./routes/chat.route");
+
+app.use("/api/chat", chatRoute);
 
 // Use routes
+app.use("/api/ho_tro", hotroRoutes);
 app.use("/api", datMuonFlowRoutes); // /api/dat-muon (flow gộp)
 app.use("/api/sach_yeu_thich", sachYeuThichRoutes);
 app.use("/api/chi_tiet_dat_muon", chiTietDatMuonRoutes);
