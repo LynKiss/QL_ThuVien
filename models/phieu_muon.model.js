@@ -11,21 +11,29 @@ const Phieu_muon = (phieu_muon) => {
 };
 
 // 📌 Lấy 1 phiếu mượn theo ID
-Phieu_muon.getById = async (ma_phieu_muon) => {
+Phieu_muon.getById = (ma_phieu_muon, callback) => {
   const sqlString = "CALL GetPhieuMuonById(?)";
-  const [result] = await db.query(sqlString, [ma_phieu_muon]);
-  return result[0];
+  db.query(sqlString, [ma_phieu_muon], (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(result[0]);
+  });
 };
 
 // 📌 Lấy tất cả phiếu mượn
-Phieu_muon.getAll = async () => {
+Phieu_muon.getAll = (callback) => {
   const sqlString = "CALL GetAllPhieuMuon()";
-  const [result] = await db.query(sqlString);
-  return result[0];
+  db.query(sqlString, (err, result) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(result[0]);
+  });
 };
 
 // 📌 Thêm phiếu mượn mới
-Phieu_muon.insert = async (phieu_muon) => {
+Phieu_muon.insert = (phieu_muon, callBack) => {
   const sqlString = "CALL InsertPhieuMuon(?, ?, ?, ?, ?, ?)";
   const params = [
     phieu_muon.ma_nguoi_dung,
@@ -35,8 +43,13 @@ Phieu_muon.insert = async (phieu_muon) => {
     phieu_muon.trang_thai,
     phieu_muon.ghi_chu || null,
   ];
-  const [res] = await db.query(sqlString, params);
-  return { ma_phieu_muon: res.insertId, ...phieu_muon };
+  db.query(sqlString, params, (err, res) => {
+    if (err) {
+      callBack(err);
+      return;
+    }
+    callBack({ ma_phieu_muon: res.insertId, ...phieu_muon });
+  });
 };
 
 // 📌 Cập nhật phiếu mượn

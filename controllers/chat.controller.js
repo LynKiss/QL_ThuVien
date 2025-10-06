@@ -168,18 +168,33 @@ Nếu không có dữ liệu, nói: "Không tìm thấy dữ liệu phù hợp t
   }
 };
 
-// 📜 Lịch sử chat
 const getChatHistory = async (req, res) => {
   try {
     const user = req.user || {};
     const user_id = user.id;
+
     const [rows] = await db.query(
-      `SELECT ma_tin_nhan, ma_nguoi_gui, ma_nguoi_nhan, noi_dung, thoi_gian 
+      `SELECT ma_tin_nhan, ma_nguoi_gui, ma_nguoi_nhan, noi_dung, thoi_gian
        FROM tin_nhan 
        WHERE (ma_nguoi_gui = ? OR ma_nguoi_nhan = ?)
        ORDER BY thoi_gian ASC`,
       [user_id, user_id]
     );
+
+    if (rows.length === 0) {
+      // nếu chưa có tin nhắn nào, trả về lời chào mặc định
+      return res.json([
+        {
+          ma_tin_nhan: 0,
+          ma_nguoi_gui: 9, // AI
+          ma_nguoi_nhan: user_id,
+          noi_dung:
+            "Xin chào 👋, tôi là trợ lý thư viện AI! Tôi có thể giúp bạn tra cứu sách, xem phiếu mượn hoặc hỗ trợ tài khoản.",
+          thoi_gian: new Date(),
+        },
+      ]);
+    }
+
     res.json(rows);
   } catch (error) {
     console.error("Lỗi lấy lịch sử chat:", error);

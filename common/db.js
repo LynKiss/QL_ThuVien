@@ -10,4 +10,26 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-module.exports = pool;
+// ✅ Wrapper giúp hỗ trợ cả callback cũ và Promise mới
+const db = {
+  query(sql, params, callback) {
+    if (typeof params === "function") {
+      callback = params;
+      params = [];
+    }
+
+    // Nếu người gọi dùng callback (code cũ)
+    if (callback) {
+      pool
+        .query(sql, params)
+        .then(([rows]) => callback(null, rows))
+        .catch((err) => callback(err));
+    }
+    // Nếu người gọi dùng await (code mới)
+    else {
+      return pool.query(sql, params);
+    }
+  },
+};
+
+module.exports = db;
