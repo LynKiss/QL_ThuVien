@@ -8,28 +8,30 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  namedPlaceholders: true,
+  timezone: "+07:00",
+  charset: "utf8mb4_general_ci",
 });
 
-// ✅ Wrapper giúp hỗ trợ cả callback cũ và Promise mới
+// ✅ Wrapper hỗ trợ code cũ (callback) và code mới (Promise)
 const db = {
+  pool, // 👉 export thêm pool gốc để getConnection() dùng được
   query(sql, params, callback) {
     if (typeof params === "function") {
       callback = params;
       params = [];
     }
 
-    // Nếu người gọi dùng callback (code cũ)
     if (callback) {
       pool
         .query(sql, params)
         .then(([rows]) => callback(null, rows))
         .catch((err) => callback(err));
-    }
-    // Nếu người gọi dùng await (code mới)
-    else {
+    } else {
       return pool.query(sql, params);
     }
   },
 };
 
+// ✅ Export đầy đủ
 module.exports = db;

@@ -2,12 +2,11 @@ const express = require("express");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const cors = require("cors"); // <-- thêm dòng này
+const cors = require("cors");
 
 app.use(express.json());
-app.use(cors()); // <-- cho phép tất cả origin (dev)
+app.use(cors());
 
-// Import routes
 const chiTietDatMuonRoutes = require("./routes/chi_tiet_dat_muon.route");
 const chiTietMuonRoutes = require("./routes/chi_tiet_muon.route");
 const danhGiaRoutes = require("./routes/danh_gia.route");
@@ -31,6 +30,8 @@ const sachYeuThichRoutes = require("./routes/sachYeuThich.route");
 const datMuonFlowRoutes = require("./routes/datMuonFlow.route");
 const hotroRoutes = require("./routes/ho_tro.routes");
 const chatRoute = require("./routes/chat.route");
+const bienMucRoutes = require("./routes/bien_muc.route");
+app.use("/api/bienmuc", bienMucRoutes);
 
 app.use("/api/chat", chatRoute);
 

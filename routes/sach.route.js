@@ -1,16 +1,64 @@
 var express = require("express");
 var router = express.Router();
 const sachController = require("../controllers/sach.controller");
-const { authenticate } = require("../middlewares/authMiddleware");
+const {
+  authenticate,
+  authorizeRoles,
+} = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadCloudinary");
+// 🔹 Top sách mượn nhiều
+router.get(
+  "/most-borrowed",
 
+  sachController.getMostBorrowed
+);
+// 🔹 Lấy danh sách tất cả sách
 router.get("/", sachController.getAll);
-router.post("/search", authenticate, sachController.search);
+
+// 🔹 Lấy danh sách đầy đủ (JOIN nhiều bảng)
 router.get("/full", sachController.getAllFullInfo);
-router.post("/advanced-search", authenticate, sachController.advancedSearch);
-router.get("/most-borrowed", authenticate, sachController.getMostBorrowed);
-router.get("/:id", authenticate, sachController.getById);
-router.post("/", authenticate, sachController.insert);
-router.put("/:id", authenticate, sachController.update);
-router.delete("/:id", authenticate, sachController.delete);
+
+// 🔹 Lấy theo ID
+router.get("/:id", sachController.getById);
+
+// 🔹 Thêm mới (cho phép upload ảnh bìa)
+router.post(
+  "/",
+  authenticate,
+  authorizeRoles(1, 2),
+  upload.single("hinh_bia"),
+  sachController.insert
+);
+
+// 🔹 Cập nhật (cho phép upload ảnh bìa mới)
+router.put(
+  "/:id",
+  authenticate,
+  authorizeRoles(1, 2),
+  upload.single("hinh_bia"),
+  sachController.update
+);
+
+// 🔹 Xóa sách
+router.delete(
+  "/:id",
+  authenticate,
+  authorizeRoles(1, 2),
+  sachController.delete
+);
+
+// 🔹 Tìm kiếm cơ bản
+router.post(
+  "/search",
+
+  sachController.search
+);
+
+// 🔹 Tìm kiếm nâng cao
+router.post(
+  "/advanced-search",
+
+  sachController.advancedSearch
+);
 
 module.exports = router;
