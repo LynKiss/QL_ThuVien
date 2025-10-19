@@ -80,8 +80,18 @@ module.exports = {
   },
   getMostBorrowed: (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
-    Sach.getMostBorrowed(limit, (result) => {
-      res.send(result);
+    Sach.getMostBorrowed(limit, (err, result) => {
+      if (err) {
+        console.error("❌ Lỗi getMostBorrowed:", err);
+        return res.status(500).json({
+          message: "Lỗi khi lấy top sách mượn nhiều",
+          error: err.message,
+        });
+      }
+      res.json({
+        message: "✅ Lấy top sách mượn nhiều thành công",
+        data: result,
+      });
     });
   },
   advancedSearch: (req, res) => {
@@ -90,4 +100,40 @@ module.exports = {
       res.send(result);
     });
   },
+  // 📘 Sách mới cập nhật
+  getNewBooks: (req, res) => {
+    const limit = parseInt(req.query.limit) || 8;
+    db.query("CALL GetSachMoi(?)", [limit], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ data: result[0] });
+    });
+  },
+
+  // 🌟 Sách nổi bật
+  getFeaturedBooks: (req, res) => {
+    const limit = parseInt(req.query.limit) || 8;
+    db.query("CALL GetSachNoiBat(?)", [limit], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ data: result[0] });
+    });
+  },
+
+  // 📚 Sách đề cử (Full)
+  getFullBooks: (req, res) => {
+    const limit = parseInt(req.query.limit) || 4;
+    db.query("CALL GetSachFull(?)", [limit], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ data: result[0] });
+    });
+  },
+
+  // 🔥 Sách mượn nhiều
+  getMostBorroweds: (req, res) => {
+    const limit = parseInt(req.query.limit) || 4;
+    db.query("CALL GetSachMuonNhieu(?)", [limit], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ data: result[0] });
+    });
+  },
 };
+const db = require("../common/db");
