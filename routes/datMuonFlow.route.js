@@ -45,7 +45,6 @@ router.post(
 router.post(
   "/gia-han",
   authenticate,
-  authorizeRoles(1, 2),
   datMuonFlowController.giaHanPhieuMuon
 );
 

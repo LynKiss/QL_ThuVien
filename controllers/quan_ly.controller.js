@@ -46,4 +46,24 @@ module.exports = {
       res.send(result);
     });
   },
+  getRankingByBorrowCount: (req, res) => {
+    QuanLy.getRankingByBorrowCount((result) => {
+      res.send(result);
+    });
+  },
+  getRankingByFavorites: (req, res) => {
+    QuanLy.getRankingByFavorites((result) => {
+      res.send(result);
+    });
+  },
+  getOverallRanking: (req, res) => {
+    QuanLy.getOverallRanking((result) => {
+      res.send(result);
+    });
+  },
+  updateUserScores: (req, res) => {
+    QuanLy.updateUserScores((result) => {
+      res.send(result);
+    });
+  },
 };

@@ -33,8 +33,10 @@ const chatRoute = require("./routes/chat.route");
 const bienMucRoutes = require("./routes/bien_muc.route");
 const paymentRoutes = require("./routes/payment.route");
 const phatRoutes = require("./routes/phat.routes");
+const notificationRoutes = require("./routes/notification.route");
 app.use("/api/payment", paymentRoutes);
 app.use("/api/phat", phatRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/bienmuc", bienMucRoutes);
 

@@ -128,4 +128,134 @@ QuanLy.thongKeSachTheoNXB = (callback) => {
   });
 };
 
+// Xếp hạng theo số lượt mượn sách
+QuanLy.getRankingByBorrowCount = (callback) => {
+  const sql = `
+    SELECT
+      pm.ma_nguoi_dung,
+      nd.ho_ten as ten_nguoi_dung,
+      COUNT(pm.ma_phieu_muon) as borrow_count
+    FROM phieu_muon pm
+    JOIN nguoi_dung nd ON pm.ma_nguoi_dung = nd.ma_nguoi_dung
+    GROUP BY pm.ma_nguoi_dung, nd.ho_ten
+    ORDER BY borrow_count DESC
+  `;
+  db.query(sql, (err, result) => {
+    if (err) return callback(err);
+    // Thêm rank thủ công
+    result.forEach((item, index) => {
+      item.rank = index + 1;
+    });
+    callback(result);
+  });
+};
+
+// Xếp hạng theo số sách yêu thích
+QuanLy.getRankingByFavorites = (callback) => {
+  const sql = `
+    SELECT
+      sy.ma_nguoi_dung,
+      nd.ho_ten as ten_nguoi_dung,
+      COUNT(sy.ma_sach) as favorite_count
+    FROM sach_yeu_thich sy
+    JOIN nguoi_dung nd ON sy.ma_nguoi_dung = nd.ma_nguoi_dung
+    GROUP BY sy.ma_nguoi_dung, nd.ho_ten
+    ORDER BY favorite_count DESC
+  `;
+  db.query(sql, (err, result) => {
+    if (err) return callback(err);
+    // Thêm rank thủ công
+    result.forEach((item, index) => {
+      item.rank = index + 1;
+    });
+    callback(result);
+  });
+};
+
+// Xếp hạng tổng hợp (mượn + yêu thích - phạt)
+QuanLy.getOverallRanking = (callback) => {
+  const sql = `
+    SELECT
+      nd.ma_nguoi_dung,
+      nd.ho_ten as ten_nguoi_dung,
+      COALESCE(borrow_stats.borrow_count, 0) as borrow_count,
+      COALESCE(fav_stats.favorite_count, 0) as favorite_count,
+      COALESCE(penalty_stats.total_penalty, 0) as total_penalty,
+      (COALESCE(borrow_stats.borrow_count, 0) * 10 + COALESCE(fav_stats.favorite_count, 0) * 5 - COALESCE(penalty_stats.total_penalty, 0)) as total_score
+    FROM nguoi_dung nd
+    LEFT JOIN (
+      SELECT ma_nguoi_dung, COUNT(*) as borrow_count
+      FROM phieu_muon
+      GROUP BY ma_nguoi_dung
+    ) borrow_stats ON nd.ma_nguoi_dung = borrow_stats.ma_nguoi_dung
+    LEFT JOIN (
+      SELECT ma_nguoi_dung, COUNT(*) as favorite_count
+      FROM sach_yeu_thich
+      GROUP BY ma_nguoi_dung
+    ) fav_stats ON nd.ma_nguoi_dung = fav_stats.ma_nguoi_dung
+    LEFT JOIN (
+      SELECT ma_nguoi_dung, SUM(so_tien) as total_penalty
+      FROM phat
+      WHERE trang_thai = 'Chưa thanh toán'
+      GROUP BY ma_nguoi_dung
+    ) penalty_stats ON nd.ma_nguoi_dung = penalty_stats.ma_nguoi_dung
+    ORDER BY total_score DESC
+  `;
+  db.query(sql, (err, result) => {
+    if (err) return callback(err);
+    // Thêm rank thủ công
+    result.forEach((item, index) => {
+      item.rank = index + 1;
+    });
+    callback(result);
+  });
+};
+
+// Cập nhật điểm số trong user_rank
+QuanLy.updateUserScores = (callback) => {
+  const sql = `
+    INSERT INTO user_rank (ma_nguoi_dung, rank_name, score, updated_at)
+    SELECT
+      nd.ma_nguoi_dung,
+      CASE
+        WHEN total_score >= 100 THEN 'Diamond'
+        WHEN total_score >= 50 THEN 'Gold'
+        WHEN total_score >= 20 THEN 'Silver'
+        ELSE 'Bronze'
+      END as rank_name,
+      total_score,
+      NOW()
+    FROM (
+      SELECT
+        nd.ma_nguoi_dung,
+        (COALESCE(borrow_stats.borrow_count, 0) * 10 + COALESCE(fav_stats.favorite_count, 0) * 5 - COALESCE(penalty_stats.total_penalty, 0)) as total_score
+      FROM nguoi_dung nd
+      LEFT JOIN (
+        SELECT ma_nguoi_dung, COUNT(*) as borrow_count
+        FROM phieu_muon
+        GROUP BY ma_nguoi_dung
+      ) borrow_stats ON nd.ma_nguoi_dung = borrow_stats.ma_nguoi_dung
+      LEFT JOIN (
+        SELECT ma_nguoi_dung, COUNT(*) as favorite_count
+        FROM sach_yeu_thich
+        GROUP BY ma_nguoi_dung
+      ) fav_stats ON nd.ma_nguoi_dung = fav_stats.ma_nguoi_dung
+      LEFT JOIN (
+        SELECT ma_nguoi_dung, SUM(so_tien) as total_penalty
+        FROM phat
+        WHERE trang_thai = 'Chưa thanh toán'
+        GROUP BY ma_nguoi_dung
+      ) penalty_stats ON nd.ma_nguoi_dung = penalty_stats.ma_nguoi_dung
+    ) nd
+    ON DUPLICATE KEY UPDATE
+      rank_name = VALUES(rank_name),
+      score = VALUES(score),
+      updated_at = VALUES(updated_at)
+  `;
+  db.query(sql, (err, result) => {
+    if (err) return callback(err);
+    callback(result);
+  });
+};
+
 module.exports = QuanLy;

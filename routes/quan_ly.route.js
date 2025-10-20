@@ -32,4 +32,10 @@ router.get("/bao-cao-ton-kho-sach", quanLyController.baoCaoTonKhoSach);
 // Route thống kê sách theo nhà xuất bản
 router.get("/thong-ke-sach-theo-nxb", quanLyController.thongKeSachTheoNXB);
 
+// Routes bảng xếp hạng người dùng
+router.get("/ranking/borrow-count", quanLyController.getRankingByBorrowCount);
+router.get("/ranking/favorites", quanLyController.getRankingByFavorites);
+router.get("/ranking/overall", quanLyController.getOverallRanking);
+router.put("/ranking/update-scores", quanLyController.updateUserScores);
+
 module.exports = router;
