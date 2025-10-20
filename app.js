@@ -31,6 +31,11 @@ const datMuonFlowRoutes = require("./routes/datMuonFlow.route");
 const hotroRoutes = require("./routes/ho_tro.routes");
 const chatRoute = require("./routes/chat.route");
 const bienMucRoutes = require("./routes/bien_muc.route");
+const paymentRoutes = require("./routes/payment.route");
+const phatRoutes = require("./routes/phat.routes");
+app.use("/api/payment", paymentRoutes);
+app.use("/api/phat", phatRoutes);
+
 app.use("/api/bienmuc", bienMucRoutes);
 
 app.use("/api/chat", chatRoute);

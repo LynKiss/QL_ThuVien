@@ -20,6 +20,7 @@ const Sach = function (sach) {
 
 Sach.getById = (ma_sach, callback) => {
   const sqlString = "CALL GetSachById(?)";
+
   db.query(sqlString, [ma_sach], (err, resultSets) => {
     if (err) return callback(err);
 
@@ -27,20 +28,27 @@ Sach.getById = (ma_sach, callback) => {
       return callback(null, null);
     }
 
-    // Lấy từng phần của dữ liệu trả về từ Stored Procedure
-    const thongTinChinh = resultSets[0][0];
-    const thongTinPhu = resultSets[1]?.[0] || null;
-    const banSao = resultSets[2] || []; // ✅ tên biến chính xác
-    const lichSu = resultSets[3] || [];
-    const fileDinhKem = resultSets[4] || [];
+    // ===== Mapping dữ liệu từ các result set =====
+    const thongTinChinh = resultSets[0][0]; // Thông tin chính
+    const thongTinPhu = resultSets[1]?.[0] || null; // Thông tin phụ
+    const fileDinhKem = resultSets[2] || []; // File đính kèm
+    const banSao = resultSets[3] || []; // Bản sao vật lý
+    const lichSu = resultSets[4] || []; // Lịch sử mượn
+    const danhGia = resultSets[5] || []; // Danh sách đánh giá
+    const diemTB = resultSets[6]?.[0] || {}; // Điểm trung bình + tổng lượt
 
-    // Gom dữ liệu trả về
+    // Gom tất cả lại thành 1 object trả về
     const data = {
       ...thongTinChinh,
       thong_tin_phu: thongTinPhu,
-      ban_sao: banSao,
-      lich_su: lichSu,
       file_dinh_kem: fileDinhKem,
+      ban_sao: banSao,
+      lich_su_muon: lichSu,
+      danh_gia: danhGia,
+      thong_ke_danh_gia: {
+        diem_trung_binh: diemTB.diem_trung_binh || 0,
+        tong_danh_gia: diemTB.tong_danh_gia || 0,
+      },
     };
 
     callback(null, data);

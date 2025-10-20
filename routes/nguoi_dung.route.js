@@ -7,8 +7,8 @@ const {
 } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadCloudinary");
 
-router.get("/", authenticate, nguoi_dungController.getAll);
-router.get("/:id", authenticate, nguoi_dungController.getById);
+router.get("/", nguoi_dungController.getAll);
+router.get("/:id", nguoi_dungController.getById);
 // 🔥 Route mới: HomeScreen
 router.get("/home/:id", authenticate, nguoi_dungController.getHome);
 router.post("/", upload.single("avatar"), nguoi_dungController.insert);

@@ -100,17 +100,27 @@ Phieu_muon.getHistoryByUser = (ma_nguoi_dung, callback) => {
     callback(null, result);
   });
 };
-
-// 📌 Lấy chi tiết sách trong 1 phiếu mượn (kèm phạt)
 Phieu_muon.getDetailByPhieu = (ma_nguoi_dung, ma_phieu_muon, callback) => {
   const sqlString = `
-    SELECT ten_sach, so_luong, han_tra, ngay_tra_thuc_te, trang_thai_sach,
-           tien_phat, ly_do_phat, trang_thai_phat
-    FROM vw_lich_su_muon
-    WHERE ma_nguoi_dung = ? AND ma_phieu_muon = ?
+    SELECT 
+      s.ma_sach,
+      s.tieu_de AS ten_sach,
+      ctm.so_luong,
+      pm.ngay_hen_tra AS han_tra,
+      ctm.ngay_tra_thuc_te,
+      ctm.trang_thai_sach,
+      ctm.da_tra
+    FROM chi_tiet_muon AS ctm
+    JOIN phieu_muon AS pm ON pm.ma_phieu_muon = ctm.ma_phieu_muon
+    JOIN sach AS s ON s.ma_sach = ctm.ma_sach
+    WHERE pm.ma_nguoi_dung = ? AND pm.ma_phieu_muon = ?;
   `;
+
   db.query(sqlString, [ma_nguoi_dung, ma_phieu_muon], (err, result) => {
-    if (err) return callback(err);
+    if (err) {
+      console.error("❌ SQL error in getDetailByPhieu:", err.sqlMessage);
+      return callback(err);
+    }
     callback(null, result);
   });
 };

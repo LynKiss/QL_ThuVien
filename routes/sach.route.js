@@ -6,12 +6,13 @@ const {
   authorizeRoles,
 } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadCloudinary");
+router.get("/noibat", sachController.getFeaturedBooks);
 router.get("/most-borroweds", sachController.getMostBorroweds);
 router.get("/", sachController.getAll);
 // ====================== CÁC API CHO THƯ VIỆN ======================
 
 router.get("/new", sachController.getNewBooks);
-router.get("/noibat", sachController.getFeaturedBooks);
+
 router.get("/fulls", sachController.getFullBooks);
 router.get("/most-borrowed", sachController.getMostBorrowed);
 

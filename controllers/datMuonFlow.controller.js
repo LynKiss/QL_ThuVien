@@ -1,7 +1,7 @@
 const db = require("../common/db");
 
 // =================== ĐẶT MƯỢN ===================
-exports.datMuon = (req, res) => {
+exports.datMuon = async (req, res) => {
   const userId = req.user?.id; // Lấy từ JWT
   if (!userId) return res.status(401).json({ error: "Chưa đăng nhập" });
 
@@ -13,105 +13,76 @@ exports.datMuon = (req, res) => {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  db.getConnection((err, connection) => {
-    if (err) return res.status(500).json({ error: err.message });
+  const connection = await db.pool.getConnection();
 
+  try {
     // 🔹 B0: Check điều kiện mượn
-    connection.query(
+    const [checkResult] = await connection.query(
       "CALL CheckDieuKienMuonSach(?)",
-      [userId],
-      (err, checkResult) => {
-        if (err) {
-          connection.release();
-          return res.status(400).json({ error: err.sqlMessage || err.message });
-        }
-
-        const checkRow = checkResult[0][0];
-        if (checkRow.status === "ERROR") {
-          connection.release();
-          return res.status(400).json({ error: checkRow.message });
-        }
-
-        // 🔹 B1: Transaction tạo đơn đặt mượn
-        connection.beginTransaction((err) => {
-          if (err) {
-            connection.release();
-            return res.status(500).json({ error: err.message });
-          }
-
-          const sqlDatMuon = "CALL InsertDatMuon(?, ?, ?, ?, ?)";
-          const paramsDatMuon = [
-            userId,
-            today,
-            ngay_du_kien_muon || null, // p_ngay_du_kien_muon
-            ghi_chu || null,
-            null, // nhân viên duyệt sau
-          ];
-
-          connection.query(sqlDatMuon, paramsDatMuon, (err, result) => {
-            if (err) {
-              return connection.rollback(() => {
-                connection.release();
-                res.status(400).json({ error: err.sqlMessage || err.message });
-              });
-            }
-
-            let maDatMuon;
-            try {
-              maDatMuon = result[0][0].ma_dat_muon;
-            } catch (e) {
-              return connection.rollback(() => {
-                connection.release();
-                res.status(500).json({ error: "Không lấy được mã đặt mượn" });
-              });
-            }
-
-            const tasks = chi_tiet.map((item) => {
-              return new Promise((resolve, reject) => {
-                if (!item.ma_sach || item.so_luong <= 0) {
-                  return reject(new Error("Thông tin sách không hợp lệ"));
-                }
-                const sqlChiTiet = "CALL InsertChiTietDatMuon(?, ?, ?)";
-                connection.query(
-                  sqlChiTiet,
-                  [maDatMuon, item.ma_sach, item.so_luong],
-                  (err) => {
-                    if (err) return reject(err);
-                    resolve();
-                  }
-                );
-              });
-            });
-
-            Promise.all(tasks)
-              .then(() => {
-                connection.commit((err) => {
-                  if (err) {
-                    return connection.rollback(() => {
-                      connection.release();
-                      res.status(500).json({ error: err.message });
-                    });
-                  }
-                  connection.release();
-                  res.status(201).json({
-                    message: "Đặt mượn thành công",
-                    ma_dat_muon: maDatMuon,
-                  });
-                });
-              })
-              .catch((err) => {
-                connection.rollback(() => {
-                  connection.release();
-                  res
-                    .status(400)
-                    .json({ error: err.sqlMessage || err.message });
-                });
-              });
-          });
-        });
-      }
+      [userId]
     );
-  });
+
+    const checkRow = checkResult[0][0];
+    if (checkRow.status === "ERROR") {
+      connection.release();
+      return res.status(400).json({ error: checkRow.message });
+    }
+
+    // 🔹 B1: Transaction tạo đơn đặt mượn
+    await connection.beginTransaction();
+
+    const sqlDatMuon = "CALL InsertDatMuon(?, ?, ?, ?, ?)";
+    const paramsDatMuon = [
+      userId,
+      today,
+      ngay_du_kien_muon || null, // p_ngay_du_kien_muon
+      ghi_chu || null,
+      null, // nhân viên duyệt sau
+    ];
+
+    const [result] = await connection.query(sqlDatMuon, paramsDatMuon);
+
+    let maDatMuon;
+    try {
+      maDatMuon = result[0][0].ma_dat_muon;
+    } catch (e) {
+      await connection.rollback();
+      connection.release();
+      return res.status(500).json({ error: "Không lấy được mã đặt mượn" });
+    }
+
+    const tasks = chi_tiet.map((item) => {
+      return new Promise(async (resolve, reject) => {
+        if (!item.ma_sach || item.so_luong <= 0) {
+          return reject(new Error("Thông tin sách không hợp lệ"));
+        }
+        const sqlChiTiet = "CALL InsertChiTietDatMuon(?, ?, ?)";
+        try {
+          await connection.query(sqlChiTiet, [
+            maDatMuon,
+            item.ma_sach,
+            item.so_luong,
+          ]);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+
+    await Promise.all(tasks);
+
+    await connection.commit();
+    connection.release();
+    res.status(201).json({
+      message: "Đặt mượn thành công",
+      ma_dat_muon: maDatMuon,
+    });
+  } catch (err) {
+    await connection.rollback();
+    connection.release();
+    res.status(400).json({ error: err.sqlMessage || err.message });
+  }
 };
 
 // Thủ thư duyệt đơn
