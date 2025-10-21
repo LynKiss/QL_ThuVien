@@ -1,7 +1,7 @@
 const express = require("express");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const cors = require("cors");
 
 app.use(express.json());
@@ -34,9 +34,22 @@ const bienMucRoutes = require("./routes/bien_muc.route");
 const paymentRoutes = require("./routes/payment.route");
 const phatRoutes = require("./routes/phat.routes");
 const notificationRoutes = require("./routes/notification.route");
+const trangThaiNguoiDungRoutes = require("./routes/trang_thai_nguoi_dung.route");
+const yeuCauTraRoutes = require("./routes/yeu_cau_tra.route");
+const banSaoSachRoutes = require("./routes/ban_sao_sach.route");
+const bienMucTacGiaRoutes = require("./routes/bien_muc_tac_gia.route");
+const bienMucTaiLieuDinhKemRoutes = require("./routes/bien_muc_tai_lieu_dinh_kem.route");
+const cauHinhRoutes = require("./routes/cau_hinh.route");
+
 app.use("/api/payment", paymentRoutes);
 app.use("/api/phat", phatRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/trang-thai-nguoi-dung", trangThaiNguoiDungRoutes);
+app.use("/api/yeu-cau-tra", yeuCauTraRoutes);
+app.use("/api/ban_sao_sach", banSaoSachRoutes);
+app.use("/api/bien_muc_tac_gia", bienMucTacGiaRoutes);
+app.use("/api/bien_muc_tai_lieu_dinh_kem", bienMucTaiLieuDinhKemRoutes);
+app.use("/api/cau_hinh", cauHinhRoutes);
 
 app.use("/api/bienmuc", bienMucRoutes);
 
